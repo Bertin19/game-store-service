@@ -2,16 +2,12 @@ package com.bertin.game.store.game;
 
 import com.bertin.game.store.category.Category;
 import com.bertin.game.store.category.CategoryRepository;
-import com.bertin.game.store.comment.Comment;
 import com.bertin.game.store.comment.CommentRepository;
 import com.bertin.game.store.common.PageResponse;
-import com.bertin.game.store.exception.GameDeletionException;
-import com.bertin.game.store.exception.GameNotFoundException;
-import com.bertin.game.store.exception.UnsupportedPlatformException;
+import com.bertin.game.store.exception.GameException;
 import com.bertin.game.store.platform.Console;
 import com.bertin.game.store.platform.Platform;
 import com.bertin.game.store.platform.PlatformRepository;
-import com.bertin.game.store.wishlist.Wishlist;
 import com.bertin.game.store.wishlist.WishlistRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.bertin.game.store.exception.ErrorCodes.GAME_NOT_DELETED;
+import static com.bertin.game.store.exception.ErrorCodes.GAME_NOT_FOUND;
+import static com.bertin.game.store.exception.ErrorCodes.PLATFORM_UNSUPPORTED;
 
 @Service
 @Slf4j
@@ -60,7 +60,7 @@ public class GameService {
     public void updateGame(String gameId, GameRequest partialRequest) {
         log.info("Updating game");
         Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException("Game not found"));
+                .orElseThrow(() -> new GameException("Game not found", GAME_NOT_FOUND));
 
         updateTitleIfChanged(game, partialRequest);
         updateCategoryIfChanged(game, partialRequest);
@@ -92,7 +92,7 @@ public class GameService {
 
     public void deleteGame(String gameId, boolean confirm) {
         Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException("Game not found"));
+                .orElseThrow(() -> new GameException("Game not found", GAME_NOT_FOUND));
 
         long commentCount = commentRepository.countByGameId(gameId);
         long wishlistCount = wishlistRepository.countByGameId(gameId);
@@ -107,7 +107,7 @@ public class GameService {
         }
 
         if (!warningMessages.isEmpty() && !confirm) {
-            throw new GameDeletionException(warningMessages);
+            throw new GameException("Game not found", GAME_NOT_DELETED);
         }
 
         log.info("Unlinking game association");
@@ -132,7 +132,7 @@ public class GameService {
                     try {
                         return Console.valueOf(platformName);
                     } catch (IllegalArgumentException e) {
-                        throw new UnsupportedPlatformException("Unknown console" + platformName);
+                        throw new GameException("Unknown console " + platformName, PLATFORM_UNSUPPORTED);
                     }
                 })
                 .collect(Collectors.toSet());
@@ -143,7 +143,7 @@ public class GameService {
 
     private void validatePlatformsExist(Set<Platform> platforms, Set<Console> selectedConsoles) {
         if (platforms.size() != selectedConsoles.size()) {
-            throw new UnsupportedPlatformException("There are platforms that are not supported for this game");
+            throw new GameException("There are platforms that are not supported for this game", PLATFORM_UNSUPPORTED);
         }
     }
 
