@@ -1,7 +1,7 @@
 package com.bertin.game.store.user;
 
 import com.bertin.game.store.common.BaseEntity;
-import com.bertin.game.store.gamerequest.GameRequest;
+import com.bertin.game.store.gamerequest.GameRequestEntity;
 import com.bertin.game.store.notification.Notification;
 import com.bertin.game.store.wishlist.Wishlist;
 import jakarta.persistence.Entity;
@@ -34,5 +34,5 @@ public class User extends BaseEntity {
     private List<Notification> notifications;
 
     @OneToMany(mappedBy = "user")
-    private List<GameRequest> gameRequests;
+    private List<GameRequestEntity> gameRequestEntities;
 }

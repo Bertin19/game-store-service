@@ -3,11 +3,12 @@ package com.bertin.game.store.game;
 import com.bertin.game.store.category.Category;
 import com.bertin.game.store.comment.Comment;
 import com.bertin.game.store.common.BaseEntity;
+import com.bertin.game.store.platform.Platform;
 import com.bertin.game.store.wishlist.Wishlist;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -17,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
@@ -24,12 +26,14 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@SuperBuilder
 @Entity
 public class Game extends BaseEntity {
+    @Column(nullable = false, unique = true)
     private String title;
     // PC, XBOX, PS, NINTENDO, ...
-    @Enumerated(value = EnumType.STRING)
-    private SupportedPlatforms supportedPlatforms;
+    @ManyToMany(fetch = FetchType.EAGER)
+    private List<Platform> platforms;
     private String coverPicture;
 
     @ManyToOne
